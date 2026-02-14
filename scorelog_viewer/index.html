@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scorelog Viewer</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #000080;
+        --panel: #000080;
+        --ink: #ffff00;
+        --muted: #00ffff;
+        --accent: #ff00ff;
+        --border: #ffff00;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: var(--bg);
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect fill="%23000080" width="10" height="10"/><circle cx="5" cy="5" r="2" fill="%23004080"/></svg>');
+        color: var(--ink);
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        width: 100%;
+        margin: 0 auto;
+        border: 3px solid var(--border);
+        padding: 20px;
+        background: var(--panel);
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        margin: 8px 0;
+        font-size: 2.4em;
+        text-shadow: 2px 2px var(--accent);
+      }
+
+      h2 {
+        color: var(--muted);
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 4px;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .starfield {
+        text-align: center;
+        font-size: 1.2em;
+        letter-spacing: 5px;
+      }
+
+      .panel {
+        margin: 16px 0 24px;
+        background: var(--panel);
+        border: 2px solid var(--border);
+        padding: 16px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      label {
+        font-weight: 700;
+      }
+
+      select {
+        font-family: inherit;
+        padding: 6px 10px;
+        border-radius: 0;
+        border: 2px solid var(--border);
+        background: #001060;
+        color: var(--ink);
+      }
+
+      a {
+        color: var(--muted);
+        text-decoration: underline;
+      }
+
+      a:visited {
+        color: var(--accent);
+      }
+
+      #status {
+        color: var(--muted);
+      }
+
+      #chart {
+        width: 100%;
+        min-height: 420px;
+        background: #e9f6ff;
+        border: 2px solid var(--border);
+      }
+
+      .apexcharts-canvas,
+      .apexcharts-inner,
+      .apexcharts-svg {
+        background: transparent !important;
+      }
+
+      .apexcharts-tooltip {
+        color: #1b1b1b !important;
+      }
+
+      .apexcharts-tooltip-title,
+      .apexcharts-tooltip-text,
+      .apexcharts-tooltip-text-y-value,
+      .apexcharts-tooltip-text-goals-value,
+      .apexcharts-tooltip-text-z-value {
+        color: #1b1b1b !important;
+      }
+    </style>
+      <style>
+        /* Force ApexCharts toolbar menu text to black for contrast on white */
+        .apexcharts-menu, .apexcharts-menu-item {
+          color: #111 !important;
+        }
+        .apexcharts-menu {
+          background: #fff !important;
+        }
+      </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="starfield">✦ ★ ✦ ★ ✦ ★ ✦ ★ ✦ ★</div>
+        <h1>Scorelog Viewer</h1>
+        <div class="starfield">✦ ★ ✦ ★ ✦ ★ ✦ ★ ✦ ★</div>
+        <p class="subtitle">ApexCharts view of Freeciv scorelog v2 data.</p>
+      </header>
+
+      <section class="panel">
+        <div class="controls">
+          <label for="fileSelect">Score file</label>
+          <select id="fileSelect"></select>
+          <label for="tagSelect">Tag</label>
+          <select id="tagSelect"></select>
+          <span id="status">Loading...</span>
+        </div>
+        <div id="chart"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Notes!</h2>
+        <p>
+          Warning! This project is PURELY EXPERIMENTAL and AI GENERATED. It may
+          contain inaccuracies, bugs, and incomplete features. Use with caution
+          and verify results independently.
+        </p>
+        <p>
+          This viewer is designed for Freeciv21 3.1 and displays player
+          statistics from scorelog files. It has been tested with Freeciv21 3.1.0
+          local game data.
+          </p>
+          <p>
+          You may click player names in the legend to toggle their data series on/off. Hover over data points to see exact values. Use the toolbar in the top-right corner of the chart to zoom, pan, reset, or download the chart as an image.
+        </p>
+        <p>
+          <a href="https://raw.githubusercontent.com/freeciv/freeciv/master/doc/README.scorelog" target="_blank">Scorelog format documentation</a>
+        <br>
+          <a href="https://apexcharts.com/" target="_blank">ApexCharts</a>
+          <br>
+          <a href="https://github.com/paavon/scorelog_viewer" target="_blank">Get Scorelog Viewer from GitHub</a>
+        </p>
+        <p>
+          <a href="/">Back to Homepage</a>
+        </p>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
