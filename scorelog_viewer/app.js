@@ -1,4 +1,5 @@
 const DEFAULT_SCORELOG_FILES = [
+  "json/Suomipeli2025_freeciv21-score.json",
   "json/demo1.json",
   "json/demo2.json"
 ];
