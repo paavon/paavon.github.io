@@ -1,3 +1,11 @@
+// Tags for which cumulative data IS available (add tag names here)
+const CUMULATIVE_INCLUDED_TAGS = [
+  "pollution", // example: cumulative pollution makes sense
+  "production", // example: cumulative production
+  "gold", // example: cumulative gold
+  // Add more tag names as needed
+  "mfg"
+];
 const DEFAULT_SCORELOG_FILES = [
   "json/Suomipeli2025_freeciv21-score.json",
   "json/demo1.json",
@@ -16,9 +24,10 @@ function buildOptions(tag) {
   return {
     chart: {
       type: "line",
-      height: 420,
+      height: 620,
       toolbar: { show: true },
-      zoom: { enabled: true }
+      zoom: { enabled: true },
+      stacked: window.SCORELOG_STACKED === true
     },
     stroke: { width: 2 },
     markers: { size: 0 },
@@ -30,6 +39,10 @@ function buildOptions(tag) {
       title: { text: "Value" }
     },
     legend: { position: "bottom" },
+    tooltip: {
+      shared: true,
+      intersect: false
+    },
     noData: { text: "Select a tag to view data" }
   };
 }
@@ -119,18 +132,91 @@ function updateChart(chart, seriesByTag, tagId) {
   if (!tagBlock) {
     chart.updateSeries([]);
     showGovLegend(false);
+    // Remove stats div if present
+    const statsDivOld = document.getElementById("max-values");
+    if (statsDivOld) statsDivOld.remove();
     return;
   }
   chart.updateOptions(buildOptions(tagBlock.tag), false, true);
   chart.updateOptions({ yaxis: { title: { text: tagBlock.tag } } }, false, true);
   chart.updateSeries(tagBlock.series);
   showGovLegend(tagBlock.tag === "gov");
+
+  // Show maximum and cumulative values per player in a table, or message if not available
+  let statsDiv = document.getElementById("max-values");
+  if (!statsDiv) {
+    statsDiv = document.createElement("div");
+    statsDiv.id = "max-values";
+    statsDiv.style.margin = "8px 0 0 0";
+    statsDiv.style.fontSize = "0.95em";
+    document.querySelector("#chart").parentNode.appendChild(statsDiv);
+  }
+  if (Array.isArray(tagBlock.series)) {
+    const tagName = tagBlock.tag;
+    const cumulativeAllowed = CUMULATIVE_INCLUDED_TAGS.includes(tagName);
+    // Build stats: max value, turn, cumulative
+    let statList = tagBlock.series
+      .filter(s => s && Array.isArray(s.data) && s.data.length > 0)
+      .map(s => {
+        let max = -Infinity, maxTurn = null, total = 0;
+        for (const d of s.data) {
+          if (typeof d.y === 'number') {
+            total += d.y;
+            if (d.y > max) {
+              max = d.y;
+              maxTurn = d.x;
+            }
+          }
+        }
+        return { name: s.name, max, maxTurn, total };
+      })
+      .sort((a, b) => b.max - a.max);
+    let html = '<b>Player stats:</b>';
+    html += '<table style="margin:0.5em 0 0 0.5em;border-collapse:collapse"><thead><tr>' +
+      '<th style="text-align:left;padding:2px 8px 2px 0">Player</th>' +
+      '<th style="text-align:right;padding:2px 8px">Max value</th>' +
+      '<th style="text-align:right;padding:2px 8px">at turn</th>';
+    if (cumulativeAllowed) {
+      html += '<th style="text-align:right;padding:2px 8px">Cumulative</th>';
+    }
+    html += '</tr></thead><tbody>';
+    for (const entry of statList) {
+      const cleanName = entry.name.replace(/^\d+\s+/, "");
+      html += `<tr>` +
+        `<td style="padding:2px 8px 2px 0"><b>${cleanName}</b></td>` +
+        `<td style="text-align:right;padding:2px 8px">${entry.max}</td>` +
+        `<td style="text-align:right;padding:2px 8px">${entry.maxTurn}</td>`;
+      if (cumulativeAllowed) {
+        html += `<td style="text-align:right;padding:2px 8px">${entry.total}</td>`;
+      }
+      html += `</tr>`;
+    }
+    html += '</tbody></table>';
+    if (!cumulativeAllowed) {
+      html += '<div style="color:#ff8080;margin-top:0.5em">Cumulative data not available for this tag type.</div>';
+    }
+    statsDiv.innerHTML = html;
+    statsDiv.style.display = "block";
+  } else {
+    statsDiv.style.display = "none";
+  }
 }
 
 (async () => {
   const fileSelect = document.getElementById("fileSelect");
   const tagSelect = document.getElementById("tagSelect");
   const status = document.getElementById("status");
+  // Add stacked checkbox
+  let stackedBox = document.getElementById("stackedBox");
+  if (!stackedBox) {
+    stackedBox = document.createElement("label");
+    stackedBox.style.margin = "0 0 0 12px";
+    stackedBox.innerHTML = '<input type="checkbox" id="stackedInput"> Stacked';
+    fileSelect.parentNode.appendChild(stackedBox);
+  }
+  const stackedInput = document.getElementById("stackedInput");
+  window.SCORELOG_STACKED = stackedInput && stackedInput.checked;
+
   // Determine initial tag for tooltip customization
   let initialTag = null;
   try {
@@ -139,6 +225,15 @@ function updateChart(chart, seriesByTag, tagId) {
   } catch (e) {}
   const chart = new ApexCharts(document.querySelector("#chart"), buildOptions(initialTag));
   chart.render();
+  if (stackedInput) {
+    stackedInput.addEventListener("change", () => {
+      window.SCORELOG_STACKED = stackedInput.checked;
+      // Rebuild chart options with new stacked value
+      const currentTag = tagSelect.value;
+      chart.updateOptions(buildOptions(currentTag), false, true);
+      chart.updateOptions({ yaxis: { title: { text: currentTag } } }, false, true);
+    });
+  }
 
   const files = Array.isArray(window.SCORELOG_FILES)
     ? window.SCORELOG_FILES
