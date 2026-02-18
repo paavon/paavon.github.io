@@ -178,8 +178,13 @@ function updateChart(chart, seriesByTag, tagId) {
       '<th style="text-align:right;padding:2px 8px">at turn</th>';
     if (cumulativeAllowed) {
       html += '<th style="text-align:right;padding:2px 8px">Cumulative</th>';
+      html += '<th style="text-align:right;padding:2px 8px">Share (%)</th>';
     }
     html += '</tr></thead><tbody>';
+    let totalSum = 0;
+    if (cumulativeAllowed) {
+      totalSum = statList.reduce((acc, entry) => acc + entry.total, 0);
+    }
     for (const entry of statList) {
       const cleanName = entry.name.replace(/^\d+\s+/, "");
       html += `<tr>` +
@@ -187,9 +192,15 @@ function updateChart(chart, seriesByTag, tagId) {
         `<td style="text-align:right;padding:2px 8px">${entry.max}</td>` +
         `<td style="text-align:right;padding:2px 8px">${entry.maxTurn}</td>`;
       if (cumulativeAllowed) {
+        const percent = totalSum > 0 ? ((entry.total / totalSum) * 100).toFixed(1) : "-";
         html += `<td style="text-align:right;padding:2px 8px">${entry.total}</td>`;
+        html += `<td style="text-align:right;padding:2px 8px">${percent}</td>`;
       }
       html += `</tr>`;
+    }
+    // Add TOTAL row for cumulative
+    if (cumulativeAllowed) {
+      html += `<tr style="font-weight:bold;background:#003399;color:#ffff33"><td style="padding:2px 8px 2px 0">TOTAL</td><td></td><td></td><td style="text-align:right;padding:2px 8px">${totalSum}</td><td style="text-align:right;padding:2px 8px">100.0</td></tr>`;
     }
     html += '</tbody></table>';
     if (!cumulativeAllowed) {
